@@ -248,9 +248,10 @@ func (h *Handler) DeleteSubscription(ctx *gin.Context) {
 // SumSubscriptions godoc
 // @Summary      Сумма подписок
 // @Description  Считает суммарную стоимость подписок за период
-// @Param        user_id  query     string  true   "ID пользователя"
-// @Param        from     query     string  true   "Начало периода MM-YYYY"
-// @Param        to       query     string  true   "Конец периода MM-YYYY"
+// @Param        user_id       query     string  true   "ID пользователя"
+// @Param        from          query     string  true   "Начало периода MM-YYYY"
+// @Param        to            query     string  true   "Конец периода MM-YYYY"
+// @Param        service_name  query     string  false  "Название сервиса"
 // @Success      200  {object}  dto.TotalResponse
 // @Failure      400  {object}  dto.ErrorResponse
 // @Router       /subscriptions/summary [get]
@@ -258,6 +259,7 @@ func (h *Handler) SumSubscriptions(ctx *gin.Context) {
 	userIDStr := ctx.Query("user_id")
 	fromStr := ctx.Query("from")
 	toStr := ctx.Query("to")
+	serviceName := ctx.Query("service_name")
 	if userIDStr == "" || fromStr == "" || toStr == "" {
 		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: "user_id, from and to are required"})
 		return
@@ -285,9 +287,12 @@ func (h *Handler) SumSubscriptions(ctx *gin.Context) {
 	toExclusive := toMonth.AddDate(0, 1, 0)
 
 	var subs []entities.Subscription
-	if err := h.db.Where("user_id = ? AND start_date < ? AND (end_date IS NULL OR end_date >= ?)",
-		userIDStr, toExclusive, fromMonth).
-		Find(&subs).Error; err != nil {
+	query := h.db.Where("user_id = ? AND start_date < ? AND (end_date IS NULL OR end_date >= ?)",
+		userIDStr, toExclusive, fromMonth)
+	if serviceName != "" {
+		query = query.Where("service_name = ?", serviceName)
+	}
+	if err := query.Find(&subs).Error; err != nil {
 		ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: err.Error()})
 		return
 	}

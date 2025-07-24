@@ -110,6 +110,12 @@ const docTemplate = `{
                         "name": "to",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Название сервиса",
+                        "name": "service_name",
+                        "in": "query"
                     }
                 ],
                 "responses": {

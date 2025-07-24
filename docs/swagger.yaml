@@ -217,6 +217,10 @@ paths:
         name: to
         required: true
         type: string
+      - description: Название сервиса
+        in: query
+        name: service_name
+        type: string
       responses:
         "200":
           description: OK
